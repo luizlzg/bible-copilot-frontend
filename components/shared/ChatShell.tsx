@@ -51,11 +51,11 @@ export function ChatShell({ sessions, email, children }: ChatShellProps) {
       >
         {/* Top bar */}
         <div
-          className="shrink-0 border-b px-4 py-2 flex items-center"
-          style={{ flexShrink: 0, position: "relative" }}
+          className="shrink-0 border-b px-4 py-2"
+          style={{ flexShrink: 0, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}
         >
           <button
-            className="p-1 rounded-md hover:bg-muted transition-colors shrink-0"
+            className="p-1 rounded-md hover:bg-muted transition-colors justify-self-start"
             onClick={() => setSidebarOpen(true)}
             aria-label="Abrir menu"
           >
@@ -64,12 +64,11 @@ export function ChatShell({ sessions, email, children }: ChatShellProps) {
           <Link
             href="/"
             className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
-            style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}
           >
             <BookOpen className="h-4 w-4 shrink-0" />
             <span className="font-semibold text-sm">Bible Copilot</span>
           </Link>
-          <div className="flex items-center gap-2 shrink-0 ml-auto">
+          <div className="flex items-center gap-2 justify-self-end min-w-0">
             <span className="text-xs text-muted-foreground truncate max-w-[120px]" title={email}>
               {email}
             </span>
