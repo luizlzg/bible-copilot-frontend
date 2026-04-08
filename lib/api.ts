@@ -1,6 +1,6 @@
 import type { ChatApiResponse } from "@/types"
 
-const PYTHON_API = process.env.PYTHON_API_URL ?? "http://localhost:8000"
+const PYTHON_API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
 export async function createSession(): Promise<{ thread_id: string }> {
   const res = await fetch(`${PYTHON_API}/session`, {
