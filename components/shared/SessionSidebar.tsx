@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, Plus, LogOut, MessageSquare } from "lucide-react"
+import { Plus, LogOut, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
@@ -29,7 +29,7 @@ function formatSessionLabel(session: Session): string {
   })
 }
 
-export function SessionSidebar({ sessions: initialSessions, email }: { sessions: Session[]; email: string }) {
+export function SessionSidebar({ sessions: initialSessions, email, onClose }: { sessions: Session[]; email: string; onClose?: () => void }) {
   const pathname = usePathname()
   const [sessions, setSessions] = useState<Session[]>(initialSessions)
 
@@ -47,21 +47,11 @@ export function SessionSidebar({ sessions: initialSessions, email }: { sessions:
 
   return (
     <aside
-      className="w-56 shrink-0 border-r flex flex-col"
+      className="w-56 shrink-0 border-r flex flex-col bg-background"
       style={{ width: "14rem", flexShrink: 0, display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}
     >
-      <div className="shrink-0 px-3 py-2.5 flex items-center gap-2 border-b" style={{ flexShrink: 0 }}>
-        <Link
-          href="/"
-          className="flex items-center gap-2 hover:opacity-70 transition-opacity min-w-0"
-        >
-          <BookOpen className="h-4 w-4 shrink-0" />
-          <span className="font-semibold text-sm truncate">Bible Copilot</span>
-        </Link>
-      </div>
-
-      <div className="shrink-0 px-2 py-2" style={{ flexShrink: 0 }}>
-        <Link href="/chat">
+      <div className="shrink-0 px-2 py-2 pt-3" style={{ flexShrink: 0 }}>
+        <Link href="/chat" onClick={onClose}>
           <Button
             variant={pathname === "/chat" ? "secondary" : "outline"}
             size="sm"
@@ -91,6 +81,7 @@ export function SessionSidebar({ sessions: initialSessions, email }: { sessions:
               <Link
                 key={session.session_id}
                 href={`/chat/${session.session_id}`}
+                onClick={onClose}
                 className={cn(
                   "flex items-start gap-1.5 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-muted",
                   isActive && "bg-muted font-medium"
