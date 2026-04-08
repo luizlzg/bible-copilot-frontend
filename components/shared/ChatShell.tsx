@@ -68,8 +68,8 @@ export function ChatShell({ sessions, email, children }: ChatShellProps) {
             <BookOpen className="h-4 w-4 shrink-0" />
             <span className="font-semibold text-sm">Bible Copilot</span>
           </Link>
-          <div className="flex items-center gap-2 justify-self-end min-w-0">
-            <span className="text-xs text-muted-foreground truncate max-w-[120px]" title={email}>
+          <div className="flex items-center gap-2 justify-end overflow-hidden w-full">
+            <span className="text-xs text-muted-foreground truncate min-w-0" title={email}>
               {email}
             </span>
             <ThemeToggle />
