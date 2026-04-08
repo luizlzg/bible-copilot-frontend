@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { Menu, BookOpen } from "lucide-react"
+import { Menu, BookOpen, User } from "lucide-react"
 import { SessionSidebar } from "@/components/shared/SessionSidebar"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import type { Session } from "@/types"
@@ -15,13 +15,25 @@ interface ChatShellProps {
 
 export function ChatShell({ sessions, email, children }: ChatShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userOpen, setUserOpen] = useState(false)
+  const userRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userRef.current && !userRef.current.contains(e.target as Node)) {
+        setUserOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   return (
     <div
       className="flex h-screen overflow-hidden"
       style={{ display: "flex", height: "100vh", overflow: "hidden" }}
     >
-      {/* Backdrop (all screen sizes) */}
+      {/* Backdrop */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-20"
@@ -44,7 +56,7 @@ export function ChatShell({ sessions, email, children }: ChatShellProps) {
         />
       </div>
 
-      {/* Main content — always full width */}
+      {/* Main content */}
       <div
         className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden"
         style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, overflow: "hidden" }}
@@ -61,6 +73,7 @@ export function ChatShell({ sessions, email, children }: ChatShellProps) {
           >
             <Menu className="h-5 w-5" />
           </button>
+
           <Link
             href="/"
             className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
@@ -68,10 +81,24 @@ export function ChatShell({ sessions, email, children }: ChatShellProps) {
             <BookOpen className="h-4 w-4 shrink-0" />
             <span className="font-semibold text-sm">Bible Copilot</span>
           </Link>
-          <div className="flex items-center gap-2 justify-end overflow-hidden w-full">
-            <span className="text-xs text-muted-foreground truncate min-w-0" title={email}>
-              {email}
-            </span>
+
+          <div className="flex items-center gap-2 justify-self-end">
+            <div ref={userRef} style={{ position: "relative" }}>
+              <button
+                className="p-1 rounded-md hover:bg-muted transition-colors"
+                onClick={() => setUserOpen((v) => !v)}
+                aria-label="Conta"
+              >
+                <User className="h-4 w-4" />
+              </button>
+              {userOpen && (
+                <div
+                  className="absolute right-0 top-full mt-1 bg-popover border rounded-md shadow-md px-3 py-2 text-xs text-muted-foreground whitespace-nowrap z-50"
+                >
+                  {email}
+                </div>
+              )}
+            </div>
             <ThemeToggle />
           </div>
         </div>
