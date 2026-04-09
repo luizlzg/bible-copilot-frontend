@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { User, LogOut } from "lucide-react"
 import { signOut } from "@/app/actions/auth"
 
-export function UserMenu({ email }: { email: string }) {
+export function UserMenu({ email, username }: { email: string; username?: string | null }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -30,7 +30,8 @@ export function UserMenu({ email }: { email: string }) {
       {open && (
         <div className="absolute right-0 top-full mt-1 bg-popover border rounded-md shadow-md z-50 min-w-max">
           <div className="px-3 py-2 text-xs text-muted-foreground border-b">
-            {email}
+            {username && <div className="font-medium text-foreground">{username}</div>}
+            <div>{email}</div>
           </div>
           <form action={signOut}>
             <button

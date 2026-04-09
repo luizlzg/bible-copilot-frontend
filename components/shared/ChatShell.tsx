@@ -11,10 +11,11 @@ import type { Session } from "@/types"
 interface ChatShellProps {
   sessions: Session[]
   email: string
+  username?: string | null
   children: React.ReactNode
 }
 
-export function ChatShell({ sessions, email, children }: ChatShellProps) {
+export function ChatShell({ sessions, email, username, children }: ChatShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -72,7 +73,7 @@ export function ChatShell({ sessions, email, children }: ChatShellProps) {
           </Link>
 
           <div className="flex items-center gap-2 justify-self-end">
-            <UserMenu email={email} />
+            <UserMenu email={email} username={username} />
             <ThemeToggle />
           </div>
         </div>

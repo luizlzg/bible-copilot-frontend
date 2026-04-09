@@ -42,6 +42,10 @@ export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  const { data: userInfo } = user
+    ? await supabase.from("user_information").select("username").eq("user_id", user.id).single()
+    : { data: null }
+
   return (
     <main className="min-h-full flex flex-col">
       {/* Nav */}
@@ -51,7 +55,7 @@ export default async function HomePage() {
           <span className="font-semibold text-sm">Bible Copilot</span>
         </div>
         <div className="flex items-center gap-3">
-          {user?.email && <UserMenu email={user.email} />}
+          {user?.email && <UserMenu email={user.email} username={userInfo?.username} />}
           <ThemeToggle />
           <Link href={user ? "/chat" : "/login"}>
             <Button variant="outline" size="sm">
