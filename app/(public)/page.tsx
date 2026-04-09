@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { BookOpen, Heart, Search, Clock, User, Compass, BookMarked } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { UserMenu } from "@/components/shared/UserMenu"
 
 const useCases = [
   {
@@ -50,11 +51,7 @@ export default async function HomePage() {
           <span className="font-semibold text-sm">Bible Copilot</span>
         </div>
         <div className="flex items-center gap-3">
-          {user?.email && (
-            <span className="text-xs text-muted-foreground hidden sm:block truncate max-w-[180px]" title={user.email}>
-              {user.email}
-            </span>
-          )}
+          {user?.email && <UserMenu email={user.email} />}
           <ThemeToggle />
           <Link href={user ? "/chat" : "/login"}>
             <Button variant="outline" size="sm">

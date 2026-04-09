@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Plus, LogOut, MessageSquare } from "lucide-react"
+import { Plus, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { signOut } from "@/app/actions/auth"
 import type { Session } from "@/types"
 
 function formatSessionLabel(session: Session): string {
@@ -97,21 +96,6 @@ export function SessionSidebar({ sessions: initialSessions, email, onClose }: { 
         </div>
       </div>
 
-      <Separator />
-
-      <div className="shrink-0 px-2 py-2" style={{ flexShrink: 0 }}>
-        <form action={signOut}>
-          <Button
-            type="submit"
-            variant="ghost"
-            size="sm"
-            className="w-full gap-1.5 h-8 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="h-3 w-3" />
-            Sair
-          </Button>
-        </form>
-      </div>
     </aside>
   )
 }

@@ -112,7 +112,9 @@ function Interpretation({ text }: { text: string }) {
       </div>
       {open && (
         <div className="px-3 py-2.5">
-          <p className="text-xs text-muted-foreground leading-relaxed">{text}</p>
+          <div className="prose prose-sm dark:prose-invert max-w-none text-xs text-muted-foreground leading-relaxed">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+          </div>
         </div>
       )}
     </div>
