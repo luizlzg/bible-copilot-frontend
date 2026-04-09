@@ -131,6 +131,10 @@ function SignUpForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="space-y-1.5">
+        <Label htmlFor="signup-username">Nome de usuário</Label>
+        <Input id="signup-username" name="username" type="text" placeholder="seunome" required autoComplete="username" />
+      </div>
+      <div className="space-y-1.5">
         <Label htmlFor="signup-email">E-mail</Label>
         <Input id="signup-email" name="email" type="email" placeholder="voce@exemplo.com" required autoComplete="email" />
       </div>

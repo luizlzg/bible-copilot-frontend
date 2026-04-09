@@ -10,6 +10,7 @@ export async function signUp(formData: FormData) {
 
   const email = formData.get("email") as string
   const password = formData.get("password") as string
+  const username = formData.get("username") as string
   const gender = formData.get("gender") as string
   const birthDate = formData.get("birth_date") as string
 
@@ -21,6 +22,7 @@ export async function signUp(formData: FormData) {
   const admin = createAdminClient()
   await admin.from("user_information").insert({
     user_id: data.user.id,
+    username: username || null,
     gender: gender || null,
     birth_date: birthDate || null,
   })
