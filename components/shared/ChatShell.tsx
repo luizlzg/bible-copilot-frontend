@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
-import { Menu, BookOpen, User } from "lucide-react"
+import { Menu, BookOpen } from "lucide-react"
 import { SessionSidebar } from "@/components/shared/SessionSidebar"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { UserMenu } from "@/components/shared/UserMenu"
 import type { Session } from "@/types"
 
 interface ChatShellProps {
@@ -15,18 +16,6 @@ interface ChatShellProps {
 
 export function ChatShell({ sessions, email, children }: ChatShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [userOpen, setUserOpen] = useState(false)
-  const userRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (userRef.current && !userRef.current.contains(e.target as Node)) {
-        setUserOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
 
   return (
     <div
@@ -83,22 +72,7 @@ export function ChatShell({ sessions, email, children }: ChatShellProps) {
           </Link>
 
           <div className="flex items-center gap-2 justify-self-end">
-            <div ref={userRef} style={{ position: "relative" }}>
-              <button
-                className="p-1 rounded-md hover:bg-muted transition-colors"
-                onClick={() => setUserOpen((v) => !v)}
-                aria-label="Conta"
-              >
-                <User className="h-4 w-4" />
-              </button>
-              {userOpen && (
-                <div
-                  className="absolute right-0 top-full mt-1 bg-popover border rounded-md shadow-md px-3 py-2 text-xs text-muted-foreground whitespace-nowrap z-50"
-                >
-                  {email}
-                </div>
-              )}
-            </div>
+            <UserMenu email={email} />
             <ThemeToggle />
           </div>
         </div>
