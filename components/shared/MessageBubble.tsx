@@ -158,18 +158,36 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   )
 }
 
-export function TypingIndicator() {
+export function StreamingBubble({ content }: { content: string }) {
+  return (
+    <div className="flex justify-start">
+      <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5">
+        <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+        </div>
+        <span className="inline-block w-0.5 h-3.5 bg-muted-foreground/60 animate-pulse align-middle ml-0.5" />
+      </div>
+    </div>
+  )
+}
+
+export function TypingIndicator({ activity }: { activity?: string | null }) {
   return (
     <div className="flex justify-start">
       <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
-        <div className="flex gap-1 items-center h-4">
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce"
-              style={{ animationDelay: `${i * 150}ms` }}
-            />
-          ))}
+        <div className="flex items-center gap-2.5">
+          <div className="flex gap-1 items-center">
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce"
+                style={{ animationDelay: `${i * 150}ms` }}
+              />
+            ))}
+          </div>
+          {activity && (
+            <span className="text-xs text-muted-foreground">{activity}</span>
+          )}
         </div>
       </div>
     </div>

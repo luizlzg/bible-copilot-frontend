@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { AlertCircle } from "lucide-react"
-import { MessageBubble, TypingIndicator } from "@/components/shared/MessageBubble"
+import { MessageBubble, StreamingBubble, TypingIndicator } from "@/components/shared/MessageBubble"
 import { ChatInput } from "@/components/shared/ChatInput"
 import { initSession } from "@/app/actions/sessions"
-import { sendChat } from "@/lib/api"
+import { streamChat } from "@/lib/api"
 import type { ChatMessage } from "@/types"
 
 interface ChatMessagesProps {
@@ -14,17 +14,51 @@ interface ChatMessagesProps {
   initialMessages: ChatMessage[]
 }
 
+function getToolLabel(tool: string, input: Record<string, unknown>): string | null {
+  switch (tool) {
+    case "read_bible_file": {
+      const path = (input.path as string) ?? ""
+      const match = path.match(/([^/]+)\.md$/)
+      if (match) {
+        const slug = match[1]
+        return `Lendo ${slug.charAt(0).toUpperCase() + slug.slice(1)}...`
+      }
+      return "Lendo livro..."
+    }
+    case "search_bible_text":
+      return "Pesquisando nas Escrituras..."
+    case "kg_cypher_query":
+      return "Explorando o conhecimento bíblico..."
+    case "list_conversation_history":
+    case "grep_conversation_history":
+    case "read_conversation_history":
+      return "Consultando histórico da conversa..."
+    case "BibleResponse":
+      return "Preparando resposta..."
+    default:
+      return null
+  }
+}
+
 export function ChatMessages({ sessionId: initialSessionId, initialMessages }: ChatMessagesProps) {
   const router = useRouter()
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId)
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [thinking, setThinking] = useState(false)
+  const [toolActivity, setToolActivity] = useState<string | null>(null)
+  const [streamingContent, setStreamingContent] = useState("")
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, thinking])
+
+  useEffect(() => {
+    if (streamingContent) {
+      bottomRef.current?.scrollIntoView({ behavior: "instant" })
+    }
+  }, [streamingContent])
 
   const handleSend = useCallback(
     async (text: string) => {
@@ -40,6 +74,8 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
       const updatedMessages = [...messages, userMsg]
       setMessages(updatedMessages)
       setThinking(true)
+      setToolActivity(null)
+      setStreamingContent("")
 
       try {
         let currentSessionId = sessionId
@@ -49,41 +85,48 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
           currentSessionId = session_id
           setSessionId(session_id)
           isNewSession = true
-          // Show correct URL immediately while waiting for AI
           window.history.replaceState(null, "", `/chat/${session_id}`)
         }
 
-        const response = await sendChat(currentSessionId, text)
-
-        if (response.error) {
-          setError(response.error)
-          setThinking(false)
-          return
-        }
-
-        const aiMsg: ChatMessage = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: response.message,
-          biblical_references: response.biblical_references ?? undefined,
-          interpretation: response.interpretation ?? undefined,
-          timestamp: new Date().toISOString(),
-        }
-
-        setMessages([...updatedMessages, aiMsg])
-        setThinking(false)
-
-        // Refresh sidebar with new/updated session
-        window.dispatchEvent(new CustomEvent("sessions-updated"))
-
-        if (isNewSession) {
-          // Sync Next.js router with the actual URL so Link navigation works correctly.
-          // conversation_history is already in Supabase (backend wrote it),
-          // so the page will load with the correct messages.
-          router.replace(`/chat/${currentSessionId}`)
+        for await (const event of streamChat(currentSessionId, text)) {
+          if (event.type === "tool_start") {
+            const label = getToolLabel(event.tool, event.input)
+            if (label !== null) setToolActivity(label)
+          } else if (event.type === "token") {
+            setStreamingContent((prev) => prev + event.token)
+          } else if (event.type === "done") {
+            const response = event.data
+            if (response.error) {
+              setError(response.error)
+            } else {
+              const aiMsg: ChatMessage = {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content: response.message,
+                biblical_references: response.biblical_references ?? undefined,
+                interpretation: response.interpretation ?? undefined,
+                timestamp: new Date().toISOString(),
+              }
+              setMessages([...updatedMessages, aiMsg])
+              window.dispatchEvent(new CustomEvent("sessions-updated"))
+              if (isNewSession) {
+                router.replace(`/chat/${currentSessionId}`)
+              }
+            }
+            setThinking(false)
+            setToolActivity(null)
+            setStreamingContent("")
+          } else if (event.type === "error") {
+            setError(event.error)
+            setThinking(false)
+            setToolActivity(null)
+            setStreamingContent("")
+          }
         }
       } catch (err) {
         setThinking(false)
+        setToolActivity(null)
+        setStreamingContent("")
         setError(
           err instanceof Error ? err.message : "Erro ao enviar mensagem. Tente novamente."
         )
@@ -115,7 +158,11 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
             <MessageBubble key={msg.id} message={msg} />
           ))}
 
-          {thinking && <TypingIndicator />}
+          {thinking && (
+            streamingContent
+              ? <StreamingBubble content={streamingContent} />
+              : <TypingIndicator activity={toolActivity} />
+          )}
 
           {error && (
             <div className="flex items-start gap-2 rounded-md bg-destructive/10 text-destructive px-3 py-2.5 text-sm">
