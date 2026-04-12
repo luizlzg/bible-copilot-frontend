@@ -1,12 +1,11 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { AlertCircle } from "lucide-react"
 import { MessageBubble, StreamingBubble, TypingIndicator } from "@/components/shared/MessageBubble"
 import { ChatInput } from "@/components/shared/ChatInput"
 import { initSession } from "@/app/actions/sessions"
-import { streamChat } from "@/lib/api"
+import { streamChat, getDeviceType } from "@/lib/api"
 import type { ChatMessage } from "@/types"
 
 interface ChatMessagesProps {
@@ -41,7 +40,6 @@ function getToolLabel(tool: string, input: Record<string, unknown>): string | nu
 }
 
 export function ChatMessages({ sessionId: initialSessionId, initialMessages }: ChatMessagesProps) {
-  const router = useRouter()
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId)
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [thinking, setThinking] = useState(false)
@@ -88,7 +86,8 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
           window.history.replaceState(null, "", `/chat/${session_id}`)
         }
 
-        for await (const event of streamChat(currentSessionId, text)) {
+        const deviceType = getDeviceType()
+        for await (const event of streamChat(currentSessionId, text, deviceType)) {
           if (event.type === "tool_start") {
             const label = getToolLabel(event.tool, event.input)
             if (label !== null) setToolActivity(label)
@@ -101,6 +100,7 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
             } else {
               const aiMsg: ChatMessage = {
                 id: crypto.randomUUID(),
+                message_id: response.message_id ?? undefined,
                 role: "assistant",
                 content: response.message,
                 biblical_references: response.biblical_references ?? undefined,
@@ -109,9 +109,6 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
               }
               setMessages([...updatedMessages, aiMsg])
               window.dispatchEvent(new CustomEvent("sessions-updated"))
-              if (isNewSession) {
-                router.replace(`/chat/${currentSessionId}`)
-              }
             }
             setThinking(false)
             setToolActivity(null)

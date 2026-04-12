@@ -17,14 +17,19 @@ export type ChatStreamEvent =
   | { type: "done"; data: ChatApiResponse }
   | { type: "error"; error: string }
 
+export function getDeviceType(): "mobile" | "desktop" {
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "mobile" : "desktop"
+}
+
 export async function* streamChat(
   threadId: string,
-  message: string
+  message: string,
+  deviceType: "mobile" | "desktop"
 ): AsyncGenerator<ChatStreamEvent> {
   const res = await fetch(`${PYTHON_API}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ thread_id: threadId, message }),
+    body: JSON.stringify({ thread_id: threadId, message, device_type: deviceType }),
   })
 
   if (!res.ok) throw new Error("Chat request failed")

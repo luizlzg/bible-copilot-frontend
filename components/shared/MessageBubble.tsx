@@ -3,15 +3,29 @@
 import { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { Check, Copy, ChevronDown, ChevronUp, BookOpen, Lightbulb } from "lucide-react"
+import { Check, Copy, ChevronDown, ChevronUp, BookOpen, Lightbulb, ThumbsUp, ThumbsDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { ChatMessage, BiblicalReference } from "@/types"
+import { updateMessageFeedback } from "@/app/actions/messages"
 
 function useCopy(getText: () => string) {
   const [copied, setCopied] = useState(false)
   async function copy() {
-    await navigator.clipboard.writeText(getText())
+    try {
+      await navigator.clipboard.writeText(getText())
+    } catch {
+      // Fallback for older mobile browsers
+      const el = document.createElement("textarea")
+      el.value = getText()
+      el.style.position = "fixed"
+      el.style.opacity = "0"
+      document.body.appendChild(el)
+      el.focus()
+      el.select()
+      document.execCommand("copy")
+      document.body.removeChild(el)
+    }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -63,7 +77,7 @@ function BiblicalReferences({ refs }: { refs: BiblicalReference[] }) {
           <span>{refs.length} {refs.length === 1 ? "referência bíblica" : "referências bíblicas"}</span>
           {open ? <ChevronUp className="h-3 w-3 ml-auto" /> : <ChevronDown className="h-3 w-3 ml-auto" />}
         </button>
-        <CopyBtn getText={refsAsText} className="mr-1 opacity-60 hover:opacity-100" />
+        <CopyBtn getText={refsAsText} className="mr-1" />
       </div>
       {open && (
         <div className="divide-y">
@@ -108,7 +122,7 @@ function Interpretation({ text }: { text: string }) {
           <span>Interpretação</span>
           {open ? <ChevronUp className="h-3 w-3 ml-auto" /> : <ChevronDown className="h-3 w-3 ml-auto" />}
         </button>
-        <CopyBtn getText={() => text} className="mr-1 opacity-60 hover:opacity-100" />
+        <CopyBtn getText={() => text} className="mr-1" />
       </div>
       {open && (
         <div className="px-3 py-2.5">
@@ -117,6 +131,39 @@ function Interpretation({ text }: { text: string }) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function FeedbackButtons({ messageId, initialFeedback }: { messageId: string; initialFeedback?: "like" | "dislike" | null }) {
+  const [feedback, setFeedback] = useState<"like" | "dislike" | null>(initialFeedback ?? null)
+
+  async function handleFeedback(value: "like" | "dislike") {
+    const next = feedback === value ? null : value
+    setFeedback(next)
+    await updateMessageFeedback(messageId, next)
+  }
+
+  return (
+    <div className="flex items-center gap-0.5 mt-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn("h-6 w-6", feedback === "like" && "text-green-500")}
+        onClick={() => handleFeedback("like")}
+        title="Gostei"
+      >
+        <ThumbsUp className="h-3 w-3" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn("h-6 w-6", feedback === "dislike" && "text-red-500")}
+        onClick={() => handleFeedback("dislike")}
+        title="Não gostei"
+      >
+        <ThumbsDown className="h-3 w-3" />
+      </Button>
     </div>
   )
 }
@@ -135,7 +182,7 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   }
 
   return (
-    <div className="flex justify-start group">
+    <div className="flex justify-start">
       <div className="max-w-[80%] space-y-1">
         <div className="rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5 relative">
           <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
@@ -143,7 +190,7 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
               {message.content}
             </ReactMarkdown>
           </div>
-          <div className="absolute -bottom-3 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute -bottom-3 right-0">
             <CopyBtn getText={() => message.content} />
           </div>
         </div>
@@ -152,6 +199,9 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
         )}
         {message.interpretation && (
           <Interpretation text={message.interpretation} />
+        )}
+        {message.message_id && (
+          <FeedbackButtons messageId={message.message_id} initialFeedback={message.user_feedback} />
         )}
       </div>
     </div>

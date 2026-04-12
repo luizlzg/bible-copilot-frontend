@@ -8,10 +8,12 @@ export type BiblicalReference = {
 
 export type ChatMessage = {
   id: string
+  message_id?: string  // DB row ID — only set on assistant messages after persistence
   role: "user" | "assistant"
   content: string
   biblical_references?: BiblicalReference[]
   interpretation?: string | null
+  user_feedback?: "like" | "dislike" | null
   timestamp: string
 }
 
@@ -27,6 +29,7 @@ export type Session = {
 
 export type ChatApiResponse = {
   thread_id: string
+  message_id?: string | null
   message: string
   biblical_references?: BiblicalReference[] | null
   interpretation?: string | null
