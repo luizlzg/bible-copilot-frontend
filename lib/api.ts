@@ -45,6 +45,10 @@ export async function* streamChat(
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ""
+  // Declared outside the read loop so they survive across network chunks.
+  // A single SSE event can arrive split across multiple reads (common on mobile).
+  let eventType = ""
+  let dataLine = ""
 
   while (true) {
     const { done, value } = await reader.read()
@@ -53,9 +57,6 @@ export async function* streamChat(
     buffer += decoder.decode(value, { stream: true })
     const lines = buffer.split("\n")
     buffer = lines.pop() ?? ""
-
-    let eventType = ""
-    let dataLine = ""
 
     for (const line of lines) {
       if (line.startsWith("event: ")) {
