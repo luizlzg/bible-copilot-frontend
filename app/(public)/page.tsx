@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { BookOpen, Heart, Search, Clock, User, Compass, BookMarked, Church } from "lucide-react"
+import { BookOpen, Heart, Search, Clock, User, Compass, BookMarked, Church, Globe, FileText, MessageSquare } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { UserMenu } from "@/components/shared/UserMenu"
@@ -57,7 +57,7 @@ export default async function HomePage() {
       <nav className="border-b px-5 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <BookOpen className="h-4 w-4" />
-          <span className="font-semibold text-sm">Bible Copilot</span>
+          <span className="font-semibold text-sm">Bíblia Copilot</span>
         </div>
         <div className="flex items-center gap-3">
           {user?.email && <UserMenu email={user.email} username={userInfo?.username} />}
@@ -87,10 +87,41 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Features */}
+      <section className="px-6 py-10 border-b bg-muted/30">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-7">Como funciona</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                <h3 className="text-sm font-medium">Base bíblica completa</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">As respostas são fundamentadas diretamente no texto das Escrituras — versículos, livros e contextos reais.</p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
+                <h3 className="text-sm font-medium">Fontes externas confiáveis</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">Para temas externos à Bíblia, como liturgia e história da Igreja, o assistente consulta fontes externas para complementar a resposta.</p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
+                <h3 className="text-sm font-medium">Conversa natural</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">Pergunte como você falaria com alguém — sem jargões técnicos, sem precisar saber capítulo e versículo de cor.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Use cases */}
       <section className="px-6 py-10">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-7">O que você pode perguntar</h2>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">O que você pode perguntar</h2>
+          <p className="text-xs text-muted-foreground mb-7">Alguns exemplos — mas sinta-se à vontade para perguntar qualquer coisa.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {useCases.map((item) => {
               const Icon = item.icon
@@ -104,13 +135,17 @@ export default async function HomePage() {
                 </div>
               )
             })}
+            <div className="p-4 rounded-lg border border-dashed bg-background flex items-center justify-center">
+              <p className="text-xs text-muted-foreground text-center">E muito mais — explore à vontade.</p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t px-6 py-4 mt-auto text-center text-xs text-muted-foreground">
-        Bible Copilot — Exploração das Escrituras com IA
+      <footer className="border-t px-6 py-5 mt-auto text-center space-y-1.5">
+        <p className="text-xs text-muted-foreground">Bíblia Copilot — Exploração das Escrituras com IA</p>
+        <p className="text-xs text-muted-foreground/60">O assistente pode cometer erros. Verifique informações importantes diretamente nas Escrituras ou com uma autoridade espiritual de confiança.</p>
       </footer>
     </main>
   )

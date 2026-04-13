@@ -214,6 +214,9 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
       </div>
 
       <ChatInput onSend={handleSend} disabled={thinking} />
+      <div className="px-6 py-2 text-center">
+        <p className="text-[10px] text-muted-foreground/70">O assistente pode cometer erros. Verifique informações importantes nas Escrituras ou com uma autoridade espiritual.</p>
+      </div>
     </div>
   )
 }

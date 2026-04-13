@@ -69,7 +69,7 @@ export function ChatShell({ sessions, email, username, children }: ChatShellProp
             className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
           >
             <BookOpen className="h-4 w-4 shrink-0" />
-            <span className="font-semibold text-sm">Bible Copilot</span>
+            <span className="font-semibold text-sm">Bíblia Copilot</span>
           </Link>
 
           <div className="flex items-center gap-2 justify-self-end">

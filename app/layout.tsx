@@ -9,7 +9,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Bible Copilot",
+  title: "Bíblia Copilot",
   description:
     "Seu copiloto para explorar as Escrituras — faça perguntas, encontre passagens relevantes e aprofunde seu entendimento da Bíblia.",
 }
