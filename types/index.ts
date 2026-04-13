@@ -1,3 +1,9 @@
+export type WebSource = {
+  title: string
+  url: string
+  snippet?: string | null
+}
+
 export type BiblicalReference = {
   book: string
   chapter: number
@@ -13,6 +19,7 @@ export type ChatMessage = {
   content: string
   biblical_references?: BiblicalReference[]
   interpretation?: string | null
+  web_sources?: WebSource[] | null
   user_feedback?: "like" | "dislike" | null
   timestamp: string
 }
@@ -33,5 +40,6 @@ export type ChatApiResponse = {
   message: string
   biblical_references?: BiblicalReference[] | null
   interpretation?: string | null
+  web_sources?: WebSource[] | null
   error?: string | null
 }

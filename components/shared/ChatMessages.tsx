@@ -34,6 +34,8 @@ function getToolLabel(tool: string, input: Record<string, unknown>): string | nu
       return "Consultando histórico da conversa..."
     case "save_biblical_response":
       return "Preparando resposta..."
+    case "search_web":
+      return "Buscando na web..."
     default:
       return null
   }
@@ -106,6 +108,7 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
                 content: response.message,
                 biblical_references: response.biblical_references ?? undefined,
                 interpretation: response.interpretation ?? undefined,
+                web_sources: response.web_sources ?? undefined,
                 timestamp: new Date().toISOString(),
               }
               setMessages([...updatedMessages, aiMsg])

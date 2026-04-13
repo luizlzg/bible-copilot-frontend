@@ -3,10 +3,10 @@
 import { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { Check, Copy, ChevronDown, ChevronUp, BookOpen, Lightbulb, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Check, Copy, ChevronDown, ChevronUp, BookOpen, Lightbulb, ThumbsUp, ThumbsDown, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { ChatMessage, BiblicalReference } from "@/types"
+import type { ChatMessage, BiblicalReference, WebSource } from "@/types"
 import { updateMessageFeedback } from "@/app/actions/messages"
 
 function useCopy(getText: () => string) {
@@ -135,6 +135,75 @@ function Interpretation({ text }: { text: string }) {
   )
 }
 
+function processContentWithCitations(content: string, webSources: WebSource[]): string {
+  if (!webSources || !webSources.length) return content
+  return content.replace(/\[(\d+)\]/g, (match, num) => {
+    const idx = parseInt(num) - 1
+    if (idx >= 0 && idx < webSources.length) {
+      return `[${num}](${webSources[idx].url})`
+    }
+    return match
+  })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function citationLinkRenderer({ href, children }: any) {
+  const text = String(children)
+  const isCitation = /^\d+$/.test(text) && href
+  if (isCitation) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="no-underline">
+        <sup className="inline-flex items-center justify-center h-4 min-w-4 px-1 text-[10px] font-semibold rounded-sm bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer">
+          {text}
+        </sup>
+      </a>
+    )
+  }
+  return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+}
+
+function WebSources({ sources }: { sources: WebSource[] }) {
+  const [open, setOpen] = useState(false)
+  if (!sources.length) return null
+
+  return (
+    <div className="mt-2 border rounded-md overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+      >
+        <Globe className="h-3 w-3" />
+        <span>{sources.length} {sources.length === 1 ? "fonte web" : "fontes web"}</span>
+        {open ? <ChevronUp className="h-3 w-3 ml-auto" /> : <ChevronDown className="h-3 w-3 ml-auto" />}
+      </button>
+      {open && (
+        <div className="divide-y">
+          {sources.map((source, i) => (
+            <div key={i} className="px-3 py-2">
+              <div className="flex items-start gap-2">
+                <span className="text-xs font-medium text-muted-foreground shrink-0">[{i + 1}]</span>
+                <div className="min-w-0">
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-medium hover:underline line-clamp-1 block"
+                  >
+                    {source.title || source.url}
+                  </a>
+                  {source.snippet && (
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{source.snippet}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function FeedbackButtons({ messageId, initialFeedback }: { messageId: string; initialFeedback?: "like" | "dislike" | null }) {
   const [feedback, setFeedback] = useState<"like" | "dislike" | null>(initialFeedback ?? null)
 
@@ -181,13 +250,16 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
     )
   }
 
+  const webSources = message.web_sources ?? []
+  const processedContent = processContentWithCitations(message.content, webSources)
+
   return (
     <div className="flex justify-start">
       <div className="max-w-[80%] space-y-1">
         <div className="rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5 relative">
           <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {message.content}
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: citationLinkRenderer }}>
+              {processedContent}
             </ReactMarkdown>
           </div>
           <div className="absolute -bottom-3 right-0">
@@ -199,6 +271,9 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
         )}
         {message.interpretation && (
           <Interpretation text={message.interpretation} />
+        )}
+        {webSources.length > 0 && (
+          <WebSources sources={webSources} />
         )}
         {message.message_id && (
           <FeedbackButtons messageId={message.message_id} initialFeedback={message.user_feedback} />
