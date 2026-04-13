@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Plus, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -30,6 +30,7 @@ function formatSessionLabel(session: Session): string {
 
 export function SessionSidebar({ sessions: initialSessions, email, onClose }: { sessions: Session[]; email: string; onClose?: () => void }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [sessions, setSessions] = useState<Session[]>(initialSessions)
 
   useEffect(() => {
@@ -50,16 +51,19 @@ export function SessionSidebar({ sessions: initialSessions, email, onClose }: { 
       style={{ width: "14rem", flexShrink: 0, display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}
     >
       <div className="shrink-0 px-2 py-2 pt-3" style={{ flexShrink: 0 }}>
-        <Link href="/chat" onClick={onClose}>
-          <Button
-            variant={pathname === "/chat" ? "secondary" : "outline"}
-            size="sm"
-            className="w-full gap-1.5 h-8 text-xs"
-          >
-            <Plus className="h-3 w-3" />
-            Nova conversa
-          </Button>
-        </Link>
+        <Button
+          variant={pathname === "/chat" ? "secondary" : "outline"}
+          size="sm"
+          className="w-full gap-1.5 h-8 text-xs"
+          onClick={() => {
+            onClose?.()
+            window.dispatchEvent(new CustomEvent("new-conversation"))
+            router.push("/chat")
+          }}
+        >
+          <Plus className="h-3 w-3" />
+          Nova conversa
+        </Button>
       </div>
 
       <Separator />

@@ -51,6 +51,19 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    function reset() {
+      setSessionId(null)
+      setMessages([])
+      setThinking(false)
+      setToolActivity(null)
+      setStreamingContent("")
+      setError(null)
+    }
+    window.addEventListener("new-conversation", reset)
+    return () => window.removeEventListener("new-conversation", reset)
+  }, [])
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, thinking])
 
