@@ -4,8 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { AlertCircle } from "lucide-react"
 import { MessageBubble, StreamingBubble, TypingIndicator } from "@/components/shared/MessageBubble"
 import { ChatInput } from "@/components/shared/ChatInput"
-import { initSession } from "@/app/actions/sessions"
-import { streamChat, getDeviceType } from "@/lib/api"
+import { initSession, getLatestAssistantMessage } from "@/app/actions/sessions"
+import { streamChat, getDeviceInfo } from "@/lib/api"
 import type { ChatMessage } from "@/types"
 
 interface ChatMessagesProps {
@@ -32,7 +32,7 @@ function getToolLabel(tool: string, input: Record<string, unknown>): string | nu
     case "grep_conversation_history":
     case "read_conversation_history":
       return "Consultando histórico da conversa..."
-    case "BibleResponse":
+    case "save_biblical_response":
       return "Preparando resposta..."
     default:
       return null
@@ -75,8 +75,9 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
       setToolActivity(null)
       setStreamingContent("")
 
+      let currentSessionId = sessionId
+
       try {
-        let currentSessionId = sessionId
         let isNewSession = false
         if (!currentSessionId) {
           const { session_id } = await initSession()
@@ -86,8 +87,8 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
           window.history.replaceState(null, "", `/chat/${session_id}`)
         }
 
-        const deviceType = getDeviceType()
-        for await (const event of streamChat(currentSessionId, text, deviceType)) {
+        const deviceInfo = getDeviceInfo()
+        for await (const event of streamChat(currentSessionId, text, deviceInfo)) {
           if (event.type === "tool_start") {
             const label = getToolLabel(event.tool, event.input)
             if (label !== null) setToolActivity(label)
@@ -124,9 +125,33 @@ export function ChatMessages({ sessionId: initialSessionId, initialMessages }: C
         setThinking(false)
         setToolActivity(null)
         setStreamingContent("")
-        setError(
-          err instanceof Error ? err.message : "Erro ao enviar mensagem. Tente novamente."
-        )
+
+        // Network errors happen on mobile when the app is backgrounded mid-stream.
+        // The backend may have already processed the request — try to recover from DB.
+        const isNetworkError = err instanceof TypeError
+        if (isNetworkError && currentSessionId) {
+          try {
+            // Wait briefly for the backend to finish writing to DB
+            await new Promise((r) => setTimeout(r, 2500))
+            const recovered = await getLatestAssistantMessage(currentSessionId)
+            if (recovered) {
+              const lastUserMsg = [...updatedMessages].reverse().find((m) => m.role === "user")
+              // Only use it if it's newer than the last known assistant message
+              const lastKnownAssistant = [...updatedMessages].reverse().find((m) => m.role === "assistant")
+              if (!lastKnownAssistant || recovered.content !== lastKnownAssistant.content) {
+                setMessages([...updatedMessages, { ...recovered, id: crypto.randomUUID() }])
+                window.dispatchEvent(new CustomEvent("sessions-updated"))
+                return
+              }
+            }
+          } catch {
+            // Recovery failed — fall through to error message
+          }
+          setError("Conexão interrompida. Verifique sua internet e tente novamente.")
+          return
+        }
+
+        setError(err instanceof Error ? err.message : "Erro ao enviar mensagem. Tente novamente.")
       }
     },
     [sessionId, messages]

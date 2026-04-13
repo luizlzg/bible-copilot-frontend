@@ -25,8 +25,22 @@ export default async function ChatPage({
 
   if (!session) notFound()
 
-  const initialMessages: ChatMessage[] =
+  // Fetch feedback from messages table (source of truth)
+  const { data: messageRows } = await supabase
+    .from("messages")
+    .select("message_id, user_feedback")
+    .eq("session_id", sessionId)
+
+  const feedbackMap = new Map(
+    (messageRows ?? []).map((r) => [r.message_id as string, r.user_feedback as "like" | "dislike" | null])
+  )
+
+  const initialMessages: ChatMessage[] = (
     (session.conversation_history as ChatMessage[]) ?? []
+  ).map((msg) => ({
+    ...msg,
+    user_feedback: msg.message_id ? (feedbackMap.get(msg.message_id) ?? null) : null,
+  }))
 
   return (
     <ChatMessages
