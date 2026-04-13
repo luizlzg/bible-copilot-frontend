@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { BookOpen, Heart, Search, Clock, User, Compass, BookMarked } from "lucide-react"
+import { BookOpen, Heart, Search, Clock, User, Compass, BookMarked, Church } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { UserMenu } from "@/components/shared/UserMenu"
@@ -36,6 +36,11 @@ const useCases = [
     title: "Orientação de leitura",
     description: "Por onde começar, o que ler a seguir, qual livro se encaixa no que você está vivendo agora.",
   },
+  {
+    icon: Church,
+    title: "Liturgia e vida da Igreja",
+    description: "Tempo litúrgico atual, Evangelho do domingo, Catecismo, dias de santos, concílios e documentos da Igreja.",
+  },
 ]
 
 export default async function HomePage() {
@@ -69,10 +74,10 @@ export default async function HomePage() {
       <section className="flex flex-col items-center justify-center text-center px-6 py-12 border-b">
         <div className="max-w-xl space-y-4">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Seu assistente para explorar a Bíblia
+            Seu assistente para explorar a Bíblia e a fé cristã
           </h1>
           <p className="text-base text-muted-foreground leading-relaxed">
-            Pergunte em linguagem comum sobre qualquer aspecto das Escrituras — situações de vida, temas doutrinários, personagens, livros, história.
+            Pergunte em linguagem comum sobre qualquer aspecto das Escrituras ou da vida cristã — situações de vida, temas doutrinários, personagens, história, liturgia e muito mais.
           </p>
           <div className="pt-1">
             <Link href={user ? "/chat" : "/login"}>
