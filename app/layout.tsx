@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "Bíblia Copilot",
   description:
     "Seu copiloto para explorar as Escrituras — faça perguntas, encontre passagens relevantes e aprofunde seu entendimento da Bíblia.",
+  icons: {
+    icon: "/icon.png",
+  },
 }
 
 export default function RootLayout({
