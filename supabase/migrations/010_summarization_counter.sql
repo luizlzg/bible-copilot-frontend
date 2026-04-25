@@ -1,0 +1,2 @@
+alter table messages add column if not exists summarization_count int default 0;                                          
+alter table sessions add column if not exists total_summarizations int default 0;
